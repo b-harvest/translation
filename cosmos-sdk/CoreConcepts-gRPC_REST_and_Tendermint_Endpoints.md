@@ -10,9 +10,9 @@
 
 각 노드는 사용자가 노드와 상호 작용할 수 있도록 다음 엔드포인트를 노출하며 각 엔드포인트는 서로 다른 포트에서 제공됩니다. 각 엔드포인트를 구성하는 방법에 대한 세부 정보는 엔드포인트의 자체 섹션에서 제공됩니다.
 
-- gRPC 서버(기본 포트: `9090`),
-- REST 서버(기본 포트: `1317`),
-- Tendermint RPC 엔드포인트(기본 포트: `26657`).
+- gRPC 서버(기본 포트: `9090`)
+- REST 서버(기본 포트: `1317`)
+- Tendermint RPC 엔드포인트(기본 포트: `26657`)
 
 노드는 Tendermint P2P 엔드포인트 또는 [Prometheus 엔드포인트](https://docs.tendermint.com/master/nodes/metrics.html#metrics)와 같은 일부 다른 엔드포인트를 노출합니다. Cosmos SDK와 직접적인 관련은 없습니다. 이러한 엔드포인트에 대한 자세한 내용은 [Tendermint 문서](https://docs.tendermint.com/master/tendermint-core/using-tendermint.html#configuration)를 참조하세요.
 
