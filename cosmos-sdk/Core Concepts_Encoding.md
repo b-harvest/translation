@@ -278,7 +278,7 @@ func varintMinLength(n uint64) int {
 
 
 
-```
+```go
 package tx
 
 import (
@@ -352,7 +352,7 @@ message Profile {
 
 이 `Profile` 예에서는 `account`를 `BaseAccount`로 하드코딩했습니다. 그러나 `BaseVestingAccount` 또는 `ContinuousVestingAccount`와 같은 [베스팅과 관련된 사용자 계정](https://docs.cosmos.network/v0.46/x/auth/spec/05_vesting.html)의 다른 유형이 몇 가지 더 있습니다. 이 계정들은 서로 다르지만 모두 `AccountI` 인터페이스를 구현합니다. `AccountI` 인터페이스를 허용하는 `account` 필드가 있는 계정 타입들을 모두 허용하는 `Profile`을 어떻게 만드시겠습니까?
 
-```
+```go
 // AccountI is an interface used to store coins at a given address within state.
 // It presumes a notion of sequence numbers for replay protection,
 // a notion of account numbers for replay protection for previously pruned accounts,
@@ -383,7 +383,7 @@ type AccountI interface {
 
 [ADR-019](https://docs.cosmos.network/v0.46/architecture/adr-019-protobuf-state-encoding.html)에서는 protobuf에서 인터페이스를 인코딩하기 위해 `Any`를 사용합니다. `Any`는 직렬화된 임의의 메시지를 바이트로 포함하며 해당 메시지 타입에 대해 전역적으로 고유한 식별자 역할을 하고 해당 메시지 타입으로 해석되는 URL을 포함합니다. 이 전략을 사용하면 protobuf 메시지 내부에 임의의 Go 타입을 패킹할 수 있습니다. 그러면 새로운 `Profile`이 다음과 같이 표시됩니다.
 
-```
+```go
 message Profile {
   // account is the account associated to a profile.
   google.protobuf.Any account = 1 [
@@ -399,7 +399,7 @@ message Profile {
 
 프로필 내부에 계정을 추가하려면 먼저 `codectypes.NewAnyWithValue`를 사용하여 `Any` 내부에 계정을 패킹해야 합니다.
 
-```
+```go
 var myAccount AccountI
 myAccount = ... // Can be a BaseAccount, a ContinuousVestingAccount or any struct implementing `AccountI`
 
@@ -429,7 +429,7 @@ jsonBz, err := cdc.MarshalJSON(profile)
 
  `Any` 내부에서 구체적인 Go 유형을 검색하는 "unpacking"이라고 하는 리버스 오퍼레이션은 `Any`의 `GetCachedValue()`로 수행됩니다.
 
-```
+```go
 profileBz := ... // The proto-encoded bytes of a Profile, e.g. retrieved through gRPC.
 var myProfile Profile
 // Unmarshal the bytes into the myProfile struct.
@@ -450,7 +450,7 @@ It is important to note that for `GetCachedValue()` to work, `Profile` (and any 
 
 `GetCachedValue()`가 작동하려면 `Profile`(과 `Profile`을 포함하는 다른 모든 구조체)이 `UnpackInterfaces` 메서드를 구현해야 합니다.
 
-```
+```go
 func (p *Profile) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
   if p.Account != nil {
     var account AccountI
@@ -471,17 +471,6 @@ func (p *Profile) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 
 
 #### `Any` Encoding in the Cosmos SDK
-
-The above `Profile` example is a fictive example used for educational purposes. In the Cosmos SDK, we use `Any` encoding in several places (non-exhaustive list):
-
-- the `cryptotypes.PubKey` interface for encoding different types of public keys,
-- the `sdk.Msg` interface for encoding different `Msg`s in a transaction,
-- the `AccountI` interface for encodinig different types of accounts (similar to the above example) in the x/auth query responses,
-- the `Evidencei` interface for encoding different types of evidences in the x/evidence module,
-- the `AuthorizationI` interface for encoding different types of x/authz authorizations,
-- the [`Validator`](https://github.com/cosmos/cosmos-sdk/blob/v0.46.0-rc1/x/staking/types/staking.pb.go#L306-L339)struct that contains information about a validator.
-
-A real-life example of encoding the pubkey as `Any` inside the Validator struct in x/staking is shown in the following example:
 
 위의 `Profile` 예제는 교육용으로 사용된 가상의 예제입니다. Cosmos SDK에서는 여러 위치에서 `Any` 인코딩을 사용합니다(전체 목록은 아님).
 
