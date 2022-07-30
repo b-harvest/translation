@@ -14,15 +14,11 @@
 - REST 서버(기본 포트: `1317`),
 - Tendermint RPC 엔드포인트(기본 포트: `26657`).
 
-노드는 Tendermint P2P 엔드포인트 또는 [Prometheus 엔드포인트(새 창에서 열림)](https://docs.tendermint.com/master/nodes/metrics.html#metrics)와 같은 일부 다른 엔드포인트를 노출합니다. Cosmos SDK와 직접적인 관련은 없습니다. 이러한 엔드포인트에 대한 자세한 내용은 [Tendermint 문서](https://docs.tendermint.com/master/tendermint-core/using-tendermint.html#configuration)를 참조하세요.
+노드는 Tendermint P2P 엔드포인트 또는 [Prometheus 엔드포인트](https://docs.tendermint.com/master/nodes/metrics.html#metrics)와 같은 일부 다른 엔드포인트를 노출합니다. Cosmos SDK와 직접적인 관련은 없습니다. 이러한 엔드포인트에 대한 자세한 내용은 [Tendermint 문서](https://docs.tendermint.com/master/tendermint-core/using-tendermint.html#configuration)를 참조하세요.
 
 
 
 ## gRPC Server
-
-In the Cosmos SDK, Protobuf is the main [encoding](https://docs.cosmos.network/v0.46/core/encoding) library. This brings a wide range of Protobuf-based tools that can be plugged into the Cosmos SDK. One such tool is [gRPC](https://grpc.io/), a modern open-source high performance RPC framework that has decent client support in several languages.
-
-Each module exposes a [Protobuf `Query` service](https://docs.cosmos.network/v0.46/building-modules/messages-and-queries.html#queries) that defines state queries. The `Query` services and a transaction service used to broadcast transactions are hooked up to the gRPC server via the following function inside the application:
 
 Cosmos SDK의 기본 [인코딩](https://docs.cosmos.network/v0.46/core/encoding) 라이브러리는 Protobuf입니다. 이는 Cosmos SDK에 연결할 수 있는 광범위한 Protobuf 기반 도구를 제공합니다. 그러한 도구 중 하나는 [gRPC](https://grpc.io/)이며, 여러 언어로 적절한 클라이언트 지원을 제공하는 최신 오픈소스 고성능 RPC 프레임워크입니다.
 
@@ -36,7 +32,7 @@ Cosmos SDK의 기본 [인코딩](https://docs.cosmos.network/v0.46/core/encoding
 
 
 
-참고: gRPC를 통해 [Protobuf `Msg` 서비스](https://docs.cosmos.network/v0.46/building-modules/messages-and-queries.html#messages) 엔드포인트를 노출할 수 없습니다. 트랜잭션은 gRPC를 사용하여 브로드캐스트되기 전에 CLI를 사용하거나 프로그래밍 방식으로 생성 및 사이닝되어야 합니다. 자세한 내용은 [ [Generating, Signing, and Broadcasting Transactions](https://docs.cosmos.network/v0.46/run-node/txs.html) ](https://docs.cosmos.network/v0.46/run-node/txs.html)를 참조하세요.
+참고: gRPC를 통해 [Protobuf `Msg` 서비스](https://docs.cosmos.network/v0.46/building-modules/messages-and-queries.html#messages) 엔드포인트를 노출할 수 없습니다. 트랜잭션은 gRPC를 사용하여 브로드캐스트되기 전에 CLI를 사용하거나 프로그래밍 방식으로 생성 및 사이닝되어야 합니다. 자세한 내용은 [Generating, Signing, and Broadcasting Transactions](https://docs.cosmos.network/v0.46/run-node/txs.html)를 참조하세요.
 
 `grpc.Server`는 모든 gRPC 쿼리 요청과 브로드캐스트 트랜잭션 요청을 생성하고 제공하는 구체적인 gRPC 서버입니다. 이 서버는 `~/.simapp/config/app.toml`에서 구성할 수 있습니다.
 
@@ -87,9 +83,6 @@ Cosmos SDK는 gRPC-gateway를 통해 REST 경로를 지원합니다.
 ```
 
 
-
-For application developers, gRPC-gateway REST routes needs to be wired up to the REST server, this is done by calling the `RegisterGRPCGatewayRoutes` function on the ModuleManager.
-
 애플리케이션 개발자는 gRPC 게이트웨이 REST 경로를 REST 서버에 연결해야 하며, 이는 ModuleManager에서 `RegisterGRPCGatewayRoutes` 함수를 호출하여 수행됩니다.
 
 
@@ -105,10 +98,6 @@ API 서버의 '/swagger' 경로 아래에 [Swagger](https://swagger.io/)(또는 
 
 
 ## Tendermint RPC
-
-Independently from the Cosmos SDK, Tendermint also exposes a RPC server. This RPC server can be configured by tuning parameters under the `rpc` table in the `~/.simapp/config/config.toml`, the default listening address is `tcp://0.0.0.0:26657`. An OpenAPI specification of all Tendermint RPC endpoints is available [here](https://docs.tendermint.com/master/rpc/).
-
-Some Tendermint RPC endpoints are directly related to the Cosmos SDK:
 
 Cosmos SDK와 별도로 Tendermint는 RPC 서버도 노출합니다. 이 RPC 서버는 `~/.simapp/config/config.toml`의 `rpc` 테이블에서 매개변수를 조정하여 구성할 수 있으며 기본 수신 주소는 `tcp://0.0.0.0:26657`입니다. 모든 Tendermint RPC 엔드포인트의 OpenAPI 사양은 [여기](https://docs.tendermint.com/master/rpc/)에서 확인할 수 있습니다.
 
