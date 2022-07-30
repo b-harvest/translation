@@ -43,8 +43,6 @@ keeper.cdc.MustUnmarshal(bz, &typeOrInterface)
 
 #### Authz authorizations
 
-Since the `MsgExec` message type can contain different messages instances, it is important that developers add the following code inside the `init` method of their module's `codec.go` file:
-
 `MsgExec` 메시지 타입에는 다른 메시지 인스턴스가 포함될 수 있으므로 개발자가 모듈의 `codec.go` 파일의 `init` 메소드 안에 다음 코드를 추가하는 것이 중요합니다.
 
 ```go
@@ -72,8 +70,6 @@ init() {
 
 ### Guidelines for protobuf message definitions
 
-In addition to [following official Protocol Buffer guidelines](https://developers.google.com/protocol-buffers/docs/proto3#simple), we recommend using these annotations in .proto files when dealing with interfaces:
-
 [공식 프로토콜 버퍼 지침 가이드라인](https://developers.google.com/protocol-buffers/docs/proto3#simple) 외에도 인터페이스를 처리할 때 .proto 파일에서 다음 주석을 사용하는 것이 좋습니다.
 
 - 'cosmos_proto.accepts_interface'를 사용하여 인터페이스를 허용하는 필드를 기록합니다.
@@ -83,8 +79,6 @@ In addition to [following official Protocol Buffer guidelines](https://developer
 
 
 ### Transaction Encoding
-
-Another important use of Protobuf is the encoding and decoding of [transactions](https://docs.cosmos.network/v0.46/core/transactions.html). Transactions are defined by the application or the Cosmos SDK but are then passed to the underlying consensus engine to be relayed to other peers. Since the underlying consensus engine is agnostic to the application, the consensus engine accepts only transactions in the form of raw bytes.
 
 Protobuf의 또 다른 중요한 용도는 [transactions](https://docs.cosmos.network/v0.46/core/transactions.html)의 인코딩 및 디코딩입니다. 트랜잭션은 애플리케이션 또는 Cosmos SDK에 의해 정의되지만 기본 합의 엔진으로 전달되어 다른 피어에게 전달됩니다. 기본 컨센서스 엔진은 애플리케이션-애그노스틱하기 때문에 컨센서스 엔진은 원시 바이트 형태의 트랜잭션만 허용합니다.
 
@@ -335,8 +329,6 @@ func DefaultJSONTxEncoder(cdc codec.ProtoCodecMarshaler) sdk.TxEncoder {
 
 ### Interface Encoding and Usage of `Any`
 
-The Protobuf DSL is strongly typed, which can make inserting variable-typed fields difficult. Imagine we want to create a `Profile` protobuf message that serves as a wrapper over [an account](https://docs.cosmos.network/v0.46/basics/accounts.html):
-
 Protobuf DSL은 강-타입(strong type) 언어라서 변수 타입 필드를 삽입하기 어려울 수 있습니다. [accounts](https://docs.cosmos.network/v0.46/basics/accounts.html)에 대한 래퍼 역할을 하는 `Profile` protobuf 메시지를 생성한다고 상상해 보세요.
 
 ```go
@@ -534,10 +526,6 @@ func NewValidator(operator sdk.ValAddress, pubKey cryptotypes.PubKey, descriptio
 
 
 ### How to update modules to protobuf encoding
-
-However, if a module type composes an interface, it must wrap it in the `sdk.Any` (from `/types` package) type. To do that, a module-level .proto file must use [`google.protobuf.Any`](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/any.proto)for respective message type interface types.
-
-For example, in the `x/evidence` module defines an `Evidence` interface, which is used by the `MsgSubmitEvidence`. The structure definition must use `sdk.Any` to wrap the evidence file. In the proto file we define it as follows:
 
 모듈에 인터페이스(예: `Account` 또는 `Content`)가 포함되어 있지 않으면 구체적인 Amino 코덱을 통해 인코딩 및 저장되는 기존 유형을 Protobuf (추가 지침은 1. 참조)로 마이그레이션하고 추가 사용자 정의 없이 `ProtoCodec`을 통해 구현되는 ` Marshaler` 를 코덱으로 받습니다.
 
