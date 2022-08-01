@@ -27,23 +27,23 @@ BIP32를 통해 사용자는 HD 지갑([BIP44](https://github.com/bitcoin/bips/b
 
 
 ```text
-     Account 0                         Account 1                         Account 2
+        계정 0                            계정 1                             계정 2
 
 +------------------+              +------------------+               +------------------+
 |                  |              |                  |               |                  |
-|    Address 0     |              |    Address 1     |               |    Address 2     |
+|      주소 0       |              |      주소 1       |               |      주소 2       |
 |        ^         |              |        ^         |               |        ^         |
 |        |         |              |        |         |               |        |         |
 |        |         |              |        |         |               |        |         |
 |        |         |              |        |         |               |        |         |
 |        +         |              |        +         |               |        +         |
-|  Public key 0    |              |  Public key 1    |               |  Public key 2    |
+|     공개키 0       |              |     공개키 1      |               |     공개키 2       |
 |        ^         |              |        ^         |               |        ^         |
 |        |         |              |        |         |               |        |         |
 |        |         |              |        |         |               |        |         |
 |        |         |              |        |         |               |        |         |
 |        +         |              |        +         |               |        +         |
-|  Private key 0   |              |  Private key 1   |               |  Private key 2   |
+|     개인키 0       |              |     개인키 1      |                |     개인키 2      |
 |        ^         |              |        ^         |               |        ^         |
 +------------------+              +------------------+               +------------------+
          |                                 |                                  |
@@ -61,7 +61,7 @@ BIP32를 통해 사용자는 HD 지갑([BIP44](https://github.com/bitcoin/bips/b
                                            |
                                  +---------+---------+
                                  |                   |
-                                 |  Mnemonic (Seed)  |
+                                 |    니모닉 (Seed)    |
                                  |                   |
                                  +-------------------+
 ```
@@ -90,7 +90,7 @@ BIP32를 통해 사용자는 HD 지갑([BIP44](https://github.com/bitcoin/bips/b
 * `secp256r1`, [코스모스 SDK의 `crypto/keys/secp256r1` 패키지]에서 구현됨(https://github.com/cosmos/cosmos-sdk/blob/v0.46.0-rc1/crypto/keys/secp256r1/ pubkey.go),
 * `tm-ed25519`, [코스모스 SDK `crypto/keys/ed25519` 패키지]에서 구현됨(https://github.com/cosmos/cosmos-sdk/blob/v0.46.0-rc1/crypto/keys/에서 구현됨) ed25519/ed25519.go). 이 기술은 합의 검증에만 지원됩니다.
 
-|              | Address length in bytes | Public key length in bytes | Used for transaction authentication | Used for consensus (tendermint) |
+|              | 주소 길이 (바이트) | 공개키 길이 (바이트) | 트랜잭션 인증에 사용 여부 | 텐더민트 합의에 사용 여부 |
 | :----------: | :---------------------: | :------------------------: | :---------------------------------: | :-----------------------------: |
 | `secp256k1`  |           20            |             33             |                 yes                 |               no                |
 | `secp256r1`  |           32            |             33             |                 yes                 |               no                |
@@ -138,11 +138,11 @@ Bech32 방법은 블록체인과 상호 작용할 때 사용할 수 있는 유�
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/v0.46.0-rc1/types/address.go#L272-L286
 
-|                    | Address Bech32 Prefix |
+|                    | Bech32 주소 접두사 |
 | ------------------ | --------------------- |
-| Accounts           | cosmos                |
-| Validator Operator | cosmosvaloper         |
-| Consensus Nodes    | cosmosvalcons         |
+| 계정                | cosmos                |
+| 검증인 운영자          | cosmosvaloper         |
+| 합의 노드             | cosmosvalcons         |
 
 ### 공개 키(Public Keys)
 
