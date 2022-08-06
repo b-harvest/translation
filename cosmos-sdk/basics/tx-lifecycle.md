@@ -116,42 +116,84 @@ ValidateBasic 검사 후 `AnteHandler`가 실행됩니다. 기술적으로는 �
 
 Validator 노드는 전체 노드와 마찬가지로 재생 공격을 방지하기 위해 mempool을 유지하지만 블록 포함을 준비하기 위해 확인되지 않은 트랜잭션의 풀로도 사용합니다. `Tx`가 이 단계에서 모든 검사를 통과하더라도 `CheckTx`가 트랜잭션을 완전히 검증하지 않기 때문에(즉, 실제로 메시지를 실행하지 않기 때문에) 나중에 여전히 유효하지 않은 것으로 판명될 수 있습니다.
 
-## [#](https://docs.cosmos.network/v0.46/basics/tx-lifecycle.html#inclusion-in-a-block)Inclusion in a Block
 
-Consensus, the process through which validator nodes come to agreement on which transactions to accept, happens in **rounds**. Each round begins with a proposer creating a block of the most recent transactions and ends with **validators**, special full-nodes with voting power responsible for consensus, agreeing to accept the block or go with a `nil` block instead. Validator nodes execute the consensus algorithm, such as [Tendermint BFT (opens new window)](https://docs.tendermint.com/master/spec/consensus/consensus.html#terms), confirming the transactions using ABCI requests to the application, in order to come to this agreement.
 
-The first step of consensus is the **block proposal**. One proposer amongst the validators is chosen by the consensus algorithm to create and propose a block - in order for a `Tx` to be included, it must be in this proposer's mempool.
+## Inclusion in a Block
 
-## [#](https://docs.cosmos.network/v0.46/basics/tx-lifecycle.html#state-changes)State Changes
+검증자 노드가 수락할 트랜잭션에 대해 합의하는 프로세스인 합의(Consensus)는 **라운드** 내에서 발생합니다. 각 라운드는 제안자가 가장 최근 거래의 블록을 생성하는 것으로 시작하여 **검증인**, 즉 합의를 책임지는 투표권을 가진 특별한 풀 노드로 블록을 수락하거나 대신 'nil' 블록으로 처리하는 데 동의합니다. 검증자 노드는 합의에 이르기 위해 [Tendermint BFT](https://docs.tendermint.com/master/spec/consensus/consensus.html#terms)와 같은 합의 알고리즘을 실행하여 애플리케이션에 ABCI 요청을 사용하여 트랜잭션을 확인합니다. 
 
-The next step of consensus is to execute the transactions to fully validate them. All full-nodes that receive a block proposal from the correct proposer execute the transactions by calling the ABCI functions [`BeginBlock`](https://docs.cosmos.network/v0.46/basics/app-anatomy.html#beginblocker-and-endblocker), `DeliverTx` for each transaction, and [`EndBlock`](https://docs.cosmos.network/v0.46/basics/app-anatomy.html#beginblocker-and-endblocker). While each full-node runs everything locally, this process yields a single, unambiguous result, since the messages' state transitions are deterministic and transactions are explicitly ordered in the block proposal.
+합의의 첫 번째 단계는 **블록 제안**입니다. 검증자 중 하나의 제안자는 블록을 생성하고 제안하기 위해 합의 알고리즘에 의해 선택됩니다. 'Tx'가 포함되려면 이 제안자의 멤풀에 있어야 합니다.
 
-Copy		----------------------- 	|Receive Block Proposal| 	----------------------- 	          | 		  v 	----------------------- 	| BeginBlock	      | 	----------------------- 	          | 		  v 	----------------------- 	| DeliverTx(tx0)      | 	| DeliverTx(tx1)      | 	| DeliverTx(tx2)      | 	| DeliverTx(tx3)      | 	|	.	      | 	|	.	      | 	|	.	      | 	----------------------- 	          | 		  v 	----------------------- 	| EndBlock	      | 	----------------------- 	          | 		  v 	----------------------- 	| Consensus	      | 	----------------------- 	          | 		  v 	----------------------- 	| Commit	      | 	-----------------------
+
+
+## State Changes
+
+합의의 다음 단계는 트랜잭션을 실행하여 완전히 검증하는 것입니다. 올바른 제안자로부터 블록 제안을 받은 모든 풀 노드는 ABCI 함수 [`BeginBlock`](https://docs.cosmos.network/v0.46/basics/app-anatomy.html#beginblocker-and-endblocker), 각 트랜잭션에 대한 `DeliverTx` 및 [`EndBlock`](https://docs.cosmos.network/v0.46/basics/app-anatomy.html#beginblocker-and-endblocker)를 호출하여 트랜잭션을 실행합니다. 각 풀 노드가 모든 것을 로컬에서 실행하는 동안 메시지의 상태 전환이 결정적이며 트랜잭션이 블록 제안에서 명시적으로 정렬되기 때문에 이 프로세스는 단일하고 명확한 결과를 산출합니다.
+
+```go
+		-----------------------
+		|Receive Block Proposal|
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| BeginBlock	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| DeliverTx(tx0)      |
+		| DeliverTx(tx1)      |
+		| DeliverTx(tx2)      |
+		| DeliverTx(tx3)      |
+		|	.	      |
+		|	.	      |
+		|	.	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| EndBlock	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| Consensus	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| Commit	      |
+		-----------------------
 
 ```
-```
 
 
 
-### [#](https://docs.cosmos.network/v0.46/basics/tx-lifecycle.html#delivertx)DeliverTx
 
-The `DeliverTx` ABCI function defined in [`BaseApp`](https://docs.cosmos.network/v0.46/core/baseapp.html) does the bulk of the state transitions: it is run for each transaction in the block in sequential order as committed to during consensus. Under the hood, `DeliverTx` is almost identical to `CheckTx` but calls the [`runTx`](https://docs.cosmos.network/v0.46/core/baseapp.html#runtx) function in deliver mode instead of check mode. Instead of using their `checkState`, full-nodes use `deliverState`:
 
-- **Decoding:** Since `DeliverTx` is an ABCI call, `Tx` is received in the encoded `[]byte` form. Nodes first unmarshal the transaction, using the [`TxConfig`](https://docs.cosmos.network/v0.46/basics/app-anatomy#register-codec) defined in the app, then call `runTx` in `runTxModeDeliver`, which is very similar to `CheckTx` but also executes and writes state changes.
-- **Checks and AnteHandler:** Full-nodes call `validateBasicMsgs` and `AnteHandler` again. This second check happens because they may not have seen the same transactions during the addition to Mempool stage and a malicious proposer may have included invalid ones. One difference here is that the `AnteHandler` will not compare `gas-prices` to the node's `min-gas-prices` since that value is local to each node - differing values across nodes would yield nondeterministic results.
-- **`MsgServiceRouter`:** While `CheckTx` would have exited, `DeliverTx` continues to run [`runMsgs`](https://docs.cosmos.network/v0.46/core/baseapp.html#runtx-antehandler-runmsgs-posthandler) to fully execute each `Msg` within the transaction. Since the transaction may have messages from different modules, `BaseApp` needs to know which module to find the appropriate handler. This is achieved using `BaseApp`'s `MsgServiceRouter` so that it can be processed by the module's Protobuf [`Msg` service](https://docs.cosmos.network/v0.46/building-modules/msg-services.html). For `LegacyMsg` routing, the `Route` function is called via the [module manager](https://docs.cosmos.network/v0.46/building-modules/module-manager.html) to retrieve the route name and find the legacy [`Handler`](https://docs.cosmos.network/v0.46/building-modules/msg-services.html#handler-type) within the module.
-- **`Msg` service:** Protobuf `Msg` service is responsible for executing each message in the `Tx` and causes state transitions to persist in `deliverTxState`.
-- **PostHandlers:** [`PostHandler`](https://docs.cosmos.network/v0.46/core/baseapp.html#posthandler)s run after the execution of the message. If they fail, the state change of `runMsgs`, as well of `PostHandlers` are both reverted.
+### DeliverTx
+
+[`BaseApp`](https://docs.cosmos.network/v0.46/core/baseapp.html)에 정의된 `DeliverTx` ABCI 함수는 상태 전환의 대부분을 수행합니다. 블록의 각 트랜잭션에 대해 합의 중에 커밋된 대로 순차적으로 실행됩니다. 내부적으로 `DeliverTx`는 `CheckTx`와 거의 동일하지만 전달 모드에서 대신 [`runTx`](https://docs.cosmos.network/v0.46/core/baseapp.html#runtx) 함수를 호출합니다. 풀 노드는 `checkState`를 사용하는 대신 `deliverState`를 사용합니다.
+
+- **Decoding:** `DeliverTx`는 ABCI 호출이므로 `Tx`는 인코딩된 `[]byte` 형식으로 수신됩니다. 노드는 먼저 앱에 정의된 [`TxConfig`](https://docs.cosmos.network/v0.46/basics/app-anatomy#register-codec)를 사용하여 트랜잭션을 언마샬링한 다음 `runTxModeDeliver` 모드에서 `runTx`를 호출합니다.  `runTx`는 `CheckTx`와 매우 유사하지만 상태 변경을 실행하고 기록하기도 합니다.
+- **Checks and AnteHandler:** 풀 노드는 `validateBasicMsgs` 및 `AnteHandler`를 다시 호출합니다. 이 두 번째 검사는 Mempool에 추가하는 동안 동일한 트랜잭션을 보지 못했고 악의적인 제안자가 잘못된 트랜잭션을 포함했을 수 있기 때문에 발생합니다. 여기서 한 가지 차이점은 `AnteHandler`가 `gas-prices`를 노드의 `min-gas-prices`와 비교하지 않는다는 것입니다. 그 값은 각 노드에 국한되어 있기 때문입니다. 노드 간에 다른 값은 비결정적 결과를 산출합니다.
+- **`MsgServiceRouter`:** `CheckTx`가 종료되었지만 `DeliverTx`는 [`runMsgs`](https://docs.cosmos.network/v0.46/core/baseapp.html#runtx-antehandler-runmsgs-posthandler)를 계속 실행하여  트랜잭션 내의 각 `Msg`를 완전히 실행합니다. 트랜잭션에는 다른 모듈의 메시지가 있을 수 있으므로 `BaseApp`은 적절한 핸들러를 찾기 위해 어떤 모듈을 알아야 합니다. 이는 모듈의 Protobuf [`Msg` 서비스](https://docs.cosmos.network/v0.46/building-modules/msg-services.html)에서 처리할 수 있도록 `BaseApp`의 `MsgServiceRouter`를 사용하여 수행됩니다. . `LegacyMsg` 라우팅의 경우 `Route` 기능이 [모듈 관리자](https://docs.cosmos.network/v0.46/building-modules/module-manager.html)를 통해 호출되어 경로 이름을 검색하고 모듈 내에서 레거시 [`Handler`](https://docs.cosmos.network/v0.46/building-modules/msg-services.html#handler-type)를 찾습니다.
+- **`Msg` service:** Protobuf `Msg` 서비스는 `Tx`의 각 메시지 실행을 담당하고 상태 전환이 `deliverTxState`에서 지속되도록 합니다.
+- **PostHandlers:** [`PostHandler`](https://docs.cosmos.network/v0.46/core/baseapp.html#posthandler)는 메시지 실행 후 실행됩니다. 실패하면 `runMsgs`와 `PostHandlers`의 상태 변경이 모두 되돌려집니다.
 - **Gas:** While a `Tx` is being delivered, a `GasMeter` is used to keep track of how much gas is being used; if execution completes, `GasUsed` is set and returned in the `abci.ResponseDeliverTx`. If execution halts because `BlockGasMeter` or `GasMeter` has run out or something else goes wrong, a deferred function at the end appropriately errors or panics.
+- 'Tx'가 배달되는 동안 'GasMeter'는 사용 중인 가스의 양을 추적하는 데 사용됩니다. 실행이 완료되면 `GasUsed`가 설정되고 `abci.ResponseDeliverTx`에 반환됩니다. `BlockGasMeter` 또는 `GasMeter`가 부족하거나 다른 문제가 발생하여 실행이 중단되면 마지막에 지연된 함수가 적절하게 오류 또는 패닉을 발생시킵니다.
 
-If there are any failed state changes resulting from a `Tx` being invalid or `GasMeter` running out, the transaction processing terminates and any state changes are reverted. Invalid transactions in a block proposal cause validator nodes to reject the block and vote for a `nil` block instead.
+'Tx'가 유효하지 않거나 'GasMeter'가 실행되지 않아 실패한 상태 변경이 있는 경우 트랜잭션 처리가 종료되고 모든 상태 변경이 되돌려집니다. 블록 제안의 유효하지 않은 트랜잭션으로 인해 밸리데이터 노드가 블록을 거부하고 대신 'nil' 블록에 투표합니다.
 
-### [#](https://docs.cosmos.network/v0.46/basics/tx-lifecycle.html#commit)Commit
 
-The final step is for nodes to commit the block and state changes. Validator nodes perform the previous step of executing state transitions in order to validate the transactions, then sign the block to confirm it. Full nodes that are not validators do not participate in consensus - i.e. they cannot vote - but listen for votes to understand whether or not they should commit the state changes.
 
-When they receive enough validator votes (2/3+ *precommits* weighted by voting power), full nodes commit to a new block to be added to the blockchain and finalize the state transitions in the application layer. A new state root is generated to serve as a merkle proof for the state transitions. Applications use the [`Commit`](https://docs.cosmos.network/v0.46/core/baseapp.html#commit) ABCI method inherited from [Baseapp](https://docs.cosmos.network/v0.46/core/baseapp.html); it syncs all the state transitions by writing the `deliverState` into the application's internal state. As soon as the state changes are committed, `checkState` start afresh from the most recently committed state and `deliverState` resets to `nil` in order to be consistent and reflect the changes.
+### Commit
 
-Note that not all blocks have the same number of transactions and it is possible for consensus to result in a `nil` block or one with none at all. In a public blockchain network, it is also possible for validators to be **byzantine**, or malicious, which may prevent a `Tx` from being committed in the blockchain. Possible malicious behaviors include the proposer deciding to censor a `Tx` by excluding it from the block or a validator voting against the block.
+마지막 단계는 노드가 블록 및 상태 변경을 커밋하는 것입니다. 밸리데이터 노드는 트랜잭션을 검증하기 위해 상태 전환을 실행하는 이전 단계를 수행한 다음 블록에 서명하여 확인합니다. 밸리데이터가 아닌 풀 노드는 합의에 참여하지 않습니다. 즉, 투표할 수 없습니다. 그러나 상태 변경을 커밋해야 하는지 여부를 이해하기 위해 투표를 수신합니다.
 
-At this point, the transaction lifecycle of a `Tx` is over: nodes have verified its validity, delivered it by executing its state changes, and committed those changes. The `Tx` itself, in `[]byte` form, is stored in a block and appended to the blockchain.
+충분한 검증인 투표를 받으면(2/3+ *precommits* - 보팅 파워로 가중치 부여), 풀 노드는 블록체인에 추가할 새 블록을 커밋하고 애플리케이션 계층에서 상태 전환을 완료합니다. 상태 전환에 대한 머클 증거로 사용하기 위해 새 상태 루트가 생성됩니다. 애플리케이션은 [Baseapp](https://docs.cosmos.network/v0.46/core/baseapp.html)에서 상속된 [`Commit`](https://docs.cosmos.network/v0.46/core/baseapp.html#commit) ABCI 메서드를 사용합니다. ; 애플리케이션의 내부 상태에 `deliverState`를 작성하여 모든 상태 전환을 동기화합니다. 상태 변경이 커밋되자마자 `checkState`는 가장 최근에 커밋된 상태에서 새로 시작하고 `deliverState`는 일관성을 유지하고 변경 사항을 반영하기 위해 `nil`로 재설정됩니다.
+
+모든 블록에 동일한 수의 트랜잭션이 있는 것은 아니며 합의에 따라 블록이 'nil'이거나 전혀 없는 블록이 될 수 있습니다. 퍼블릭 블록체인 네트워크에서는 검증인이 **비잔틴**이거나 악의적일 수 있으며, 이로 인해 블록체인에서 `Tx`가 커밋되지 않을 수 있습니다. 가능한 악의적 행동에는 제안자가 `Tx`를 블록에서 제외하여 검열하기로 결정하거나 블록에 대해 반대 투표하는 검증인이 포함됩니다.
+
+이 시점에서 `Tx`의 트랜잭션 수명 주기는 끝났습니다. 노드는 유효성을 확인하고 상태 변경을 실행하여 전달하고 해당 변경 사항을 커밋합니다. `[]byte` 형식의 `Tx` 자체는 블록에 저장되고 블록체인에 추가됩니다.
