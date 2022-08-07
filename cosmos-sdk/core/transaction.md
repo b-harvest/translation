@@ -157,11 +157,11 @@ simd tx send $MY_VALIDATOR_ADDRESS $RECIPIENT 1000stake
 
 #### gRPC
 
-[gRPC](https://grpc.io)는 코스모스 SDK의 RPC 계층의 주요 구성 요소입니다. 주요 사용법은 모듈의 [`질의` 서비스](../building-modules)에서 확인할 있습니다. 그러나 모듈과 관련 없이 사용할 수 있는 일부 gRPC 서비스도 코스모스 SDK에서 제공되며, 그 중 하나가 `Tx` 서비스입니다. 
+[gRPC](https://grpc.io)는 코스모스 SDK의 RPC 계층의 주요 구성 요소입니다. 주요 사용법은 모듈의 [`쿼리` 서비스](../building-modules)에서 확인할 있습니다. 그러나 모듈과 관련 없이 사용할 수 있는 일부 gRPC 서비스도 코스모스 SDK에서 제공되며, 그 중 하나가 `Tx` 서비스입니다. 
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/v0.46.0-rc1/proto/cosmos/tx/v1beta1/service.proto
 
-`Tx` 서비스는 트랜잭션 시뮬레이션 또는 트랜잭션 질의와 같은 몇 가지 유틸리티 기능과 트랜잭션을 전송하는 기능을 제공합니다.
+`Tx` 서비스는 트랜잭션 시뮬레이션 또는 트랜잭션 쿼리와 같은 몇 가지 유틸리티 기능과 트랜잭션을 전송하는 기능을 제공합니다.
 
 트랜잭션을 전송하고 시뮬레이션하는 예제는 [여기](../run-node/txs.md#programmatically-with-go) 있습니다.
 
